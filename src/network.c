@@ -1,16 +1,15 @@
 #include "network.h"
 #include "client.h"
 #include "config.h"
+#include "cp437.h"
 #include "game.h"
 #include "key.h"
 
-#include <asm-generic/errno-base.h>
-#include <asm-generic/errno.h>
-#include <asm-generic/socket.h>
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +20,14 @@
 
 
 static Server server = {0};
+
+static const char telnet_mode[] = {
+	255, 251, 1,	// IAC WILL ECHO
+	255, 251, 3,	// IAC WILL (SUPPR GO AHEAD)
+	255, 254, 34,	// IAC DONT LINEMODE
+	255, 253, 31,	// IAC DO NAWS
+};
+
 
 static void set_non_blocking(int fd) {
 	int flags = fcntl(fd, F_GETFL, 0);
@@ -54,13 +61,13 @@ void network_init() {
 	printf("MUD Server started on port %d\n", NETWORK_PORT);
 }
 
+
 void network_destroy() {
+	for (int i = 0; i < PLAYER_COUNT; i++)
+		client_close(&server.clients[i]);
 	close(server.socket);
-	for (int i = 0; i < PLAYER_COUNT; i++) {
-		if (server.clients[i].connected)
-			close(server.clients[i].socket);
-	}
 }
+
 
 static inline int init_fd_sets(fd_set *read_fds, fd_set *write_fds) {
 	FD_ZERO(read_fds);
@@ -91,14 +98,6 @@ static inline Client *push_client() {
 	assert(0);
 }
 
-#define ANSI_CURSOR_HIDE "\033[?25l"
-#define ANSI_CLEAR "\x1b[2J"
-static const char accept_message[] = ANSI_CURSOR_HIDE ANSI_CLEAR;
-static const unsigned char telnet_mode[] = {
-	255, 251, 1, 
-	255, 251, 3, 
-	255, 254, 34
-};
 
 static inline void accept_clients(fd_set *read_fds) {
 	if (!FD_ISSET(server.socket, read_fds))
@@ -115,8 +114,8 @@ static inline void accept_clients(fd_set *read_fds) {
 		client->socket = socket;
 		set_non_blocking(socket);
 
-		send(socket, telnet_mode, sizeof(telnet_mode), 0);
-		send(socket, accept_message, sizeof(accept_message), 0);
+		client_send(client, telnet_mode, sizeof(telnet_mode));
+		client_send_accept_message(client);
 	}
 }
 
@@ -143,17 +142,69 @@ static void handle_client_char(Client *client, char c) {
 	game_input(client->player_index, c);
 }
 
+// NOTE: Will have to create some lexer logic for this probably once I want to use more telnet features
+static const uint8_t TELNET_IAC = 255;
+static int handle_telnet_command(Client *client, int i) {
+	static const uint8_t TELNET_SB = 250;
+	static const uint8_t TELNET_NAWS = 31;
+	static const uint8_t TELNET_SE = 240;
+
+	if (i + 2 >= client->in_len)
+		return -1;
+	if (client->in_buffer[i+1] != TELNET_SB) {
+		printf("Not SB %d\n", client->in_buffer[i+1]);
+		return 1;
+	}
+	if (client->in_buffer[i+2] != TELNET_NAWS) {
+		printf("Not naws\n");
+		return 2;
+	}
+
+	if (i + 8 >= client->in_len) {
+		printf("Not long enough\n");
+		return -1;
+	}
+	uint16_t width_high = client->in_buffer[i+3];
+	uint16_t width_low = client->in_buffer[i+4];
+	uint16_t height_high = client->in_buffer[i+5];
+	uint16_t height_low = client->in_buffer[i+6];
+
+	if (client->in_buffer[i+7] != TELNET_IAC) {
+		printf("Not iac\n");
+		return 7;
+	}
+	if (client->in_buffer[i+8] != TELNET_SE) {
+		printf("Not se\n");
+		return 8;
+	}
+
+	client->terminal.width = (width_high << 8) | width_low;
+	client->terminal.height = (height_high << 8) | height_low;
+	client->terminal.resized = true;
+
+	printf("Terminal dim: %d;%d\n", client->terminal.width, client->terminal.height);
+	return 8;
+}
+
 static void handle_client_message(Client *client) {
 	static const char ESCAPE_CHAR = 27;
+	static const char ESCAPE_CHAR_NEXT = '[';
+
 	int i = 0;
 	while(i < client->in_len) {
-		if (client->in_buffer[i] == ESCAPE_CHAR) {
-			// NOTE: If escape char is not finished, we have to pause and wait for it
+		uint8_t c = client->in_buffer[i];
+		if (c == TELNET_IAC) {
+			int n = handle_telnet_command(client, i);
+			if (n < 0)
+				break;
+			i += n;
+			continue;
+		}
+			
+		if (c == ESCAPE_CHAR) {
 			if (i + 2 >= client->in_len)
 				break;
-
-			if (client->in_buffer[i+1] != '[') {
-				// NOTE: Invalid escape sequence
+			if (client->in_buffer[i+1] != ESCAPE_CHAR_NEXT) {
 				i += 1;
 				continue;
 			}
@@ -163,12 +214,13 @@ static void handle_client_message(Client *client) {
 			continue;
 		}
 
-		handle_client_char(client, client->in_buffer[i]);
+		handle_client_char(client, c);
 		i++;
 	}
 	if (i == 0)
 		return;
 	if (i < client->in_len) {
+		// NOTE: We partially read the buffer, shift it all to the left
 		memmove(
 			client->in_buffer,
 			client->in_buffer + i,
@@ -196,6 +248,7 @@ static void handle_client(fd_set *read_fds, fd_set *write_fds, Client *client) {
 		if (n < 0) {
 			if (n == EWOULDBLOCK)
 				return;
+			// NOTE: Some error happened
 			close(client->socket);
 			client->socket = 0;
 			client->connected = false;
@@ -207,7 +260,6 @@ static void handle_client(fd_set *read_fds, fd_set *write_fds, Client *client) {
 		}
 	}
 }
-
 
 
 void network_update() {
@@ -234,26 +286,44 @@ void network_buffer_clear() {
 	server.buffer_length = 0;
 }
 
+
 int network_buffer_length() {
 	return server.buffer_length;
 }
 
+#define safe_append_char(c) \
+	if (server.buffer_length < sizeof(server.buffer)) \
+		server.buffer[server.buffer_length++] = c;
+
+void network_buffer_write_glyph(uint8_t c) {
+	const char *utf8 = cp437_to_utf8[c];
+
+	for (int i = 0; utf8[i] != '\0'; i++) {
+		if (server.buffer_length >= sizeof(server.buffer))
+			break;
+		server.buffer[server.buffer_length++] = utf8[i];
+	}
+}
+
+#undef safe_append_char
+
+
 void network_buffer_write(const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
-	int space = sizeof(server.buffer) - server.buffer_length;
-	if (space <= 0) {
+	int space_remaining = sizeof(server.buffer) - server.buffer_length;
+	if (space_remaining <= 0) {
 		va_end(args);
 		return;
 	}
 
 	int n = vsnprintf(
 		server.buffer + server.buffer_length,
-		space,
+		space_remaining,
 		fmt, args
 	);
 	if (n > 0) {
-		server.buffer_length += (n < space) ? n : space - 1;
+		server.buffer_length += (n < space_remaining) ? n : space_remaining - 1;
 	}
 	va_end(args);
 	return;
@@ -263,8 +333,9 @@ void network_buffer_write(const char *fmt, ...) {
 int network_send(Client *client) {
 	if (server.buffer_length == 0)
 		return 0;
-	return send(client->socket, server.buffer, server.buffer_length, 0);
+	return client_send(client, server.buffer, server.buffer_length);
 }
+
 
 void network_render_step() {
 	for (int i = 0; i < PLAYER_COUNT; i++) {
@@ -274,3 +345,4 @@ void network_render_step() {
 		client_render(client);
 	}
 }
+

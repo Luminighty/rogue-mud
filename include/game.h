@@ -2,7 +2,7 @@
 #define GAME_H
 
 #include "config.h"
-#include "goblin.h"
+#include "actor.h"
 #include "key.h"
 #include "map.h"
 #include "player.h"
@@ -14,7 +14,7 @@ typedef struct {
 	bool running;
 	Map map;
 	Player players[PLAYER_COUNT];
-	Goblin goblins[12];
+	Actors actors;
 
 	bool is_dirty;
 } Game;

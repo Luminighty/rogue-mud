@@ -5,7 +5,7 @@
 
 
 typedef struct {
-	char c;
+	uint8_t c;
 	uint8_t fg;
 	uint8_t bg;
 } Glyph;

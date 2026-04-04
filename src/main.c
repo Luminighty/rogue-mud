@@ -1,23 +1,21 @@
 #include "client.h"
 #include "config.h"
 #include "deltatime.h"
-#include "display.h"
 #include "game.h"
 #include "network.h"
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <unistd.h>
 
 
 static void handle_signal(int signal) {
 	if (signal == SIGINT) {
 		game_exit();
-	} else {
-		exit(1);
+		return;
 	}
+	exit(1);
 }
 
 
@@ -30,6 +28,7 @@ static inline void render_clients() {
 		client_set_dirty(client);
 	}
 }
+
 
 int main() {
 	signal(SIGINT, handle_signal);

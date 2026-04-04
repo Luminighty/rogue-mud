@@ -26,6 +26,7 @@ Client* client_get(int i);
 void network_render_step();
 void network_buffer_clear();
 void network_buffer_write(const char *fmt, ...);
+void network_buffer_write_glyph(uint8_t c);
 int network_buffer_length();
 int network_send(Client *client);
 

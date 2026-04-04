@@ -1,19 +1,18 @@
 #include "display.h"
-#include "config.h"
 #include "glyph.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-
-
-#define ANSI_RESET "\x1b[0m"
-#define ANSI_CLEAR "\x1b[2J"
-#define ANSI_POS(x, y) "\x1b[" #y ";" #y "H"
+#include "palette.h"
 
 
 void display_clear(Display *display) {
 	memset(display->z_index, 0, sizeof(display->z_index));
-	memset(display->glyphs, 0, sizeof(display->glyphs));
+
+	Glyph base = glyph(0, COLOR_BLACK, COLOR_BLACK);
+	for (int y = 0; y < DISPLAY_HEIGHT; y++)
+	for (int x = 0; x < DISPLAY_WIDTH; x++)
+		display->glyphs[y][x] = base;
 }
 
 
