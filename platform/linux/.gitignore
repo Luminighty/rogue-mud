@@ -1,7 +1,6 @@
 *.log
-/bin
-/build
+bin
+build
 /.cache
-platform/*/build
 
 compile_commands.json

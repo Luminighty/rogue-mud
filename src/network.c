@@ -5,18 +5,15 @@
 #include "game.h"
 #include "key.h"
 
+#include "tcp_server.h"
+
 #include <assert.h>
 #include <errno.h>
-#include <fcntl.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
 
 static Server server = {0};
@@ -29,59 +26,16 @@ static const char telnet_mode[] = {
 };
 
 
-static void set_non_blocking(int fd) {
-	int flags = fcntl(fd, F_GETFL, 0);
-	fcntl(fd, F_SETFL, flags | O_NONBLOCK);
-}
-
 void network_init() {
-	server.socket = socket(AF_INET, SOCK_STREAM, 0);
-
-	int opt = 1;
-	if (setsockopt(server.socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-	    perror("setsockopt(SO_REUSEADDR) failed");
-		exit(1);
-	}
-
-	set_non_blocking(server.socket);
-	struct sockaddr_in addr;
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(NETWORK_PORT);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	if (bind(server.socket, (void*)&addr, sizeof(addr)) != 0) {
-		perror("Socket init");
-		exit(1);
-	}
-
-	if (listen(server.socket, 128) != 0) {
-		perror("Listen failed");
-		exit(1);
-	}
-	printf("MUD Server started on port %d\n", NETWORK_PORT);
+	server.socket = app_tcp_server_listen(NETWORK_PORT, 128);
 }
 
 
 void network_destroy() {
+	printf("NETWORK destroy.\n");
 	for (int i = 0; i < PLAYER_COUNT; i++)
 		client_close(&server.clients[i]);
-	close(server.socket);
-}
-
-
-static inline int init_fd_sets(fd_set *read_fds, fd_set *write_fds) {
-	FD_ZERO(read_fds);
-	FD_ZERO(write_fds);
-	FD_SET(server.socket, read_fds);
-	int max_fd = server.socket;
-	for (int i = 0; i < PLAYER_COUNT; i++) {
-		if (!server.clients[i].connected)
-			continue;
-		FD_SET(server.clients[i].socket, read_fds);
-		if (server.clients[i].socket > max_fd)
-			max_fd = server.clients[i].socket;
-	}
-	return max_fd;
+	app_tcp_close(server.socket);
 }
 
 
@@ -91,7 +45,6 @@ static inline Client *push_client() {
 			memset(&server.clients[i], 0, sizeof(Client));
 			server.clients[i].connected = true;
 			server.clients[i].player_index = i;
-			server.clients[i].player_index = i;
 			return &server.clients[i];
 		}
 	}
@@ -99,12 +52,9 @@ static inline Client *push_client() {
 }
 
 
-static inline void accept_clients(fd_set *read_fds) {
-	if (!FD_ISSET(server.socket, read_fds))
-		return;
-
+static inline void accept_clients() {
 	while (1) {
-		int socket = accept(server.socket, NULL, NULL);
+		int socket = app_tcp_accept(server.socket);
 		if (socket < 0) {
 			if (errno != EWOULDBLOCK && errno != EAGAIN)
 				perror("Accept error");
@@ -112,7 +62,7 @@ static inline void accept_clients(fd_set *read_fds) {
 		}
 		Client *client = push_client();
 		client->socket = socket;
-		set_non_blocking(socket);
+		app_tcp_set_non_blocking(socket);
 
 		client_send(client, telnet_mode, sizeof(telnet_mode));
 		client_send_accept_message(client);
@@ -234,46 +184,35 @@ static void handle_client_message(Client *client) {
 }
 
 
-static void handle_client(fd_set *read_fds, fd_set *write_fds, Client *client) {
+static void client_recv(Client *client) {
 	if (!client->connected)
 		return;
 	
-	if (FD_ISSET(client->socket, read_fds)) {
-		int n = recv(
-			client->socket,
-			client->in_buffer + client->in_len,
-			sizeof(client->in_buffer) - client->in_len,
-			0
-		);
-		if (n < 0) {
-			if (n == EWOULDBLOCK)
-				return;
-			// NOTE: Some error happened
-			close(client->socket);
-			client->socket = 0;
-			client->connected = false;
+	int n = app_tcp_recv(
+		client->socket,
+		client->in_buffer + client->in_len,
+		sizeof(client->in_buffer) - client->in_len
+	);
+	if (n < 0) {
+		if (errno == EWOULDBLOCK || errno == EAGAIN)
 			return;
-		}
-		if (n > 0) {
-			client->in_len += n;
-			handle_client_message(client);
-		}
+		perror("Client recv error.");
+		close(client->socket);
+		client->socket = 0;
+		client->connected = false;
+		return;
+	}
+	if (n > 0) {
+		client->in_len += n;
+		handle_client_message(client);
 	}
 }
 
 
 void network_update() {
-	fd_set read_fds, write_fds;
-
-	int max_fd = init_fd_sets(&read_fds, &write_fds);
-	struct timeval tv = {0, 5000};
-	if (select(max_fd + 1, &read_fds, &write_fds, NULL, &tv) < 0)
-		return;
-
-	accept_clients(&read_fds);
-
+	accept_clients();
 	for (int i = 0; i < PLAYER_COUNT; i++)
-		handle_client(&read_fds, &write_fds, &server.clients[i]);
+		client_recv(&server.clients[i]);
 }
 
 
@@ -323,7 +262,10 @@ void network_buffer_write(const char *fmt, ...) {
 		fmt, args
 	);
 	if (n > 0) {
-		server.buffer_length += (n < space_remaining) ? n : space_remaining - 1;
+		server.buffer_length +=
+			(n < space_remaining)
+			? n 
+			: space_remaining - 1;
 	}
 	va_end(args);
 	return;

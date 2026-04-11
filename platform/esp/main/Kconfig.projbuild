@@ -1,0 +1,39 @@
+menu "Wifi Config"
+	config ESP_WIFI_SSID
+		string "WiFi SSID"
+		default "my_ssid"
+
+	config ESP_WIFI_PASSWORD
+		string "WiFi Password"
+		default "my_password"
+
+	config ESP_MAXIMUM_RETRY
+		int "Maximum retry"
+		default 5
+		help
+			Set the Maximum retry to avoid station reconnecting to the AP unlimited when the AP is really inexistent.
+	
+	config TCP_PORT
+		int "Port"
+		range 0 65535
+		default 1212
+	
+	config TCP_KEEP_ALIVE_IDLE
+		int "TCP keep-alive idle time"
+		default 5
+		help
+			Keep-alive idle time. In idle time without receiving any data from peer, will send keep-alive probe packet
+
+	config TCP_KEEP_ALIVE_INTERVAL
+		int "TCP keep-alive interval time"
+		default 5
+		help
+			Keep-alive probe packet interval time.
+	
+	config TCP_KEEP_ALIVE_COUNT
+		int "TCP keep-alive packet retry send counts"
+		default 3
+		help
+			Keep-alive probe packet retry count.
+
+endmenu

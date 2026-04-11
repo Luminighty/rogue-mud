@@ -7,8 +7,8 @@
 #include <errno.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <sys/socket.h>
 #include <unistd.h>
+#include "tcp_server.h"
 
 
 static const char accept_message[] = 
@@ -67,7 +67,7 @@ void client_set_dirty(Client *client) {
 
 int client_send(Client *client, const char *message, size_t length) {
 	if (!client->connected) return -1;
-	int res = send(client->socket, message, length, MSG_NOSIGNAL);
+	int res = app_tcp_send(client->socket, message, length);
 	if (res < 0 && errno == EPIPE) {
 		printf("Client %d disconnected.\n", client->player_index);
 		client_close(client);
@@ -78,8 +78,9 @@ int client_send(Client *client, const char *message, size_t length) {
 
 void client_close(Client *client) {
 	if (!client->connected) return;
-	send(client->socket, close_message, sizeof(close_message), MSG_NOSIGNAL);
-	close(client->socket);
+	printf("Closing client %d.\n", client->socket);
+	app_tcp_send(client->socket, close_message, sizeof(close_message));
+	app_tcp_close(client->socket);
 	client->connected = false;
 	client->socket = 0;
 }

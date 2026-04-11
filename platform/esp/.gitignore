@@ -1,7 +1,9 @@
-*.log
-/bin
-/build
-/.cache
-platform/*/build
 
+*.log
+bin
+build
+/.cache
+
+sdkconfig
+sdkconfig*
 compile_commands.json
