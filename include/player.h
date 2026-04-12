@@ -17,16 +17,17 @@ typedef enum {
 	ACTION_MOVE_RIGHT,
 } PlayerAction;
 
+#define PLAYER_NAME_SIZE 16
 
 typedef struct {
 	bool active;
 	PlayerAction action;
 	ActorId actor;
 	Vision vision;
+	char name[PLAYER_NAME_SIZE];
 } Player;
 
-
-void player_init(Player *player, Vec2i position);
+void player_init(Player *player, Vec2i position, char *name);
 void player_tick(Player *player, double dt);
 void player_render(Display *display, Player *player, bool is_current_player);
 void player_set_action(Player *player, PlayerAction action);

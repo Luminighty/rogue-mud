@@ -3,21 +3,24 @@
 
 #include "config.h"
 #include "display.h"
+#include "linalg.h"
+#include "tile.h"
 #include <stdint.h>
 #include <stdbool.h>
 
 
-typedef enum {
-	TILE_NONE,
-	TILE_FLOOR,
-	TILE_WALL,
-	TILE_SIZE,
-} Tile;
+#define ROOM_MAX 32
+
+typedef struct {
+	Rect2i rect;
+} Room;
 
 typedef struct {
 	Tile tiles[MAP_SIZE];
 	uint16_t width;
 	uint16_t height;
+	Room rooms[ROOM_MAX];
+	int room_c;
 } Map;
 
 
@@ -26,6 +29,11 @@ bool map_is_solid(Map *map, int x, int y);
 
 struct vision;
 void map_render(Display *display, Map *map, struct vision *vision);
+
+#define foreach_room(map, i) for (int i = 0; i < (map)->room_c; i++)
+#define foreach_tile(map, x, y) \
+	for (int y = 0; y < MAP_HEIGHT; y++) \
+	for (int x = 0; x < MAP_WIDTH; x++)
 
 static inline int map_idx(Map *map, int x, int y) {
 	return x + map->width * y;

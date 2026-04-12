@@ -2,11 +2,11 @@
 #define CONFIG_H
 
 
-#define DISPLAY_WIDTH 50
-#define DISPLAY_HEIGHT 24
+#define DISPLAY_WIDTH 80
+#define DISPLAY_HEIGHT 40
 
-#define MAP_WIDTH 50
-#define MAP_HEIGHT 24
+#define MAP_WIDTH 80
+#define MAP_HEIGHT 33
 #define MAP_SIZE ((MAP_WIDTH) * (MAP_HEIGHT))
 
 #define PLAYER_COUNT 8

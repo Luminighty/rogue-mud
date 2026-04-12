@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define Z_SKIP 0
 
 typedef struct {
 	Glyph glyphs[DISPLAY_HEIGHT][DISPLAY_WIDTH];
@@ -21,8 +22,9 @@ typedef struct {
 
 void display_clear(Display *display);
 void display_set(Display *display, int x, int y, int z, Glyph glyph);
-void display_string(Display *display, int x, int y, int z, const char *str, uint8_t fg, uint8_t bg);
-
+int display_string(Display *display, int x, int y, int z, const char *str, uint8_t fg, uint8_t bg);
+int display_int(Display *display, int x, int y, int z, int value, uint8_t fg, uint8_t bg);
+void display_box(Display *display, int x, int y, int width, int height);
 
 static inline bool display_contains(int x, int y) {
 	return x >= 0 && y >= 0 && x < DISPLAY_WIDTH && y < DISPLAY_HEIGHT;

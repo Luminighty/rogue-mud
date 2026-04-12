@@ -1,10 +1,12 @@
 require("meta.math.utils")
 require("meta.math.vector")
+require("meta.math.rect")
 require("meta.math.basic")
 
 local header_guard = "LINALG_H"
 local filename = "linalg"
 local src_includes = { "<stdio.h>" }
+local h_includes = { "<stdbool.h>" }
 
 local function generate()
 	Basic()
@@ -13,6 +15,9 @@ local function generate()
 	Vector({ name = "Vec3i", component = "int", dimension = 3 })
 	Vector({ name = "Vec2", component = "float", dimension = 2 })
 	Vector({ name = "Vec3", component = "float", dimension = 3 })
+
+	Rect2({ name = "Rect2i", component = "int" })
+	Rect2({ name = "Rect2", component = "float" })
 end
 
 return function()
@@ -20,13 +25,15 @@ return function()
 	local header_file = filename .. ".h"
 	io.output("./include/" .. header_file)
 	MathHeaderBegin(header_guard)
+	AddIncludes(h_includes)
 	generate()
 	MathHeaderEnd(header_guard)
 	io.close()
 
 	-- Source File Gen
 	io.output("./src/" .. filename .. ".c")
-	MathSourceBegin(header_file, src_includes)
+	MathSourceBegin(header_file)
+	AddIncludes(src_includes)
 	generate()
 	MathSourceEnd()
 end

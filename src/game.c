@@ -10,29 +10,47 @@
 #include "palette.h"
 #include "player.h"
 #include "prefabs.h"
+#include "random.h"
+#include <assert.h>
+#include <stdio.h>
 #include <stdbool.h>
 
 
 Game game = {0};
 
 void game_init() {
+	random_init();
 	actors_init();
 
 	game.running = true;
 	map_generate(&game.map);
-	player_init(&game.players[0], ((Vec2i){.x = 10, .y = 10}));
-	player_init(&game.players[1], ((Vec2i){.x = 8, .y = 9}));
 
-	goblin_create(((Vec2i){ .x=17, .y = 17}));
-	orc_create(((Vec2i){    .x=5,  .y =  8}));
-	potion_create(((Vec2i){ .x=4,  .y =  6}));
-	scroll_create(((Vec2i){ .x=16, .y = 14}));
-	goblin_create(((Vec2i){ .x=26, .y = 9}));
-	goblin_create(((Vec2i){ .x=30, .y = 8}));
-	goblin_create(((Vec2i){ .x=27, .y = 12}));
-	orc_create(((Vec2i){ .x=24, .y = 15}));
-	potion_create(((Vec2i){ .x=24,  .y = 24}));
-	potion_create(((Vec2i){ .x=42,  .y = 8}));
+	assert(game.map.room_c > 0);
+	Room *first_room = &game.map.rooms[0];
+	Vec2i spawn = rect2i_center(first_room->rect);
+	player_init(&game.players[0], spawn, "Luminight");
+	player_init(&game.players[1], spawn, "Alias_01");
+
+	foreach_room(&game.map, i) {
+		Vec2i center = rect2i_center(game.map.rooms[i].rect);
+		if (random_range(0, 5) < 3) {
+			goblin_create(center);
+		} else {
+			orc_create(center);
+		}
+
+	}
+
+	// goblin_create(((Vec2i){ .x=17, .y = 17}));
+	// orc_create(((Vec2i){    .x=5,  .y =  8}));
+	// potion_create(((Vec2i){ .x=4,  .y =  6}));
+	// scroll_create(((Vec2i){ .x=16, .y = 14}));
+	// goblin_create(((Vec2i){ .x=26, .y = 9}));
+	// goblin_create(((Vec2i){ .x=30, .y = 8}));
+	// goblin_create(((Vec2i){ .x=27, .y = 12}));
+	// orc_create(((Vec2i){ .x=24, .y = 15}));
+	// potion_create(((Vec2i){ .x=24,  .y = 24}));
+	// potion_create(((Vec2i){ .x=42,  .y = 8}));
 }
 
 
@@ -61,10 +79,29 @@ void game_exit() {
 
 void game_render(Display *display, int player_idx) {
 	Player *player = &game.players[player_idx];
+	Actor *actor = actor_get(player->actor);
 	display_clear(display);
 	map_render(display, &game.map, &player->vision);
 	actors_render(display, &game.actors, &player->vision);
 
+	static const int OFFSET_Y = MAP_HEIGHT;
+	static const int HEIGHT = DISPLAY_HEIGHT - MAP_HEIGHT;
+
+	display_box(display, 0, OFFSET_Y, 80, HEIGHT);
+
+	// PLAYER NAME
+	int x = 4;
+	display_set(display, x++, OFFSET_Y, Z_SKIP, glyph(' ', COLOR_WHITE, COLOR_BLACK));
+	x += display_string(display, x, OFFSET_Y, Z_SKIP, player->name, COLOR_WHITE, COLOR_BLACK);
+	display_set(display, x++, OFFSET_Y, Z_SKIP, glyph(' ', COLOR_WHITE, COLOR_BLACK));
+	x += 4;
+
+	// HP
+	x += display_string(display, x, OFFSET_Y, Z_SKIP, " HP: ", COLOR_YELLOW, COLOR_BLACK);
+	x += display_int(display, x, OFFSET_Y, Z_SKIP, actor->hp, COLOR_YELLOW, COLOR_BLACK);
+	x += display_string(display, x, OFFSET_Y, Z_SKIP, " / ", COLOR_YELLOW, COLOR_BLACK);
+	x += display_int(display, x, OFFSET_Y, Z_SKIP, actor->hp, COLOR_YELLOW, COLOR_BLACK);
+	display_set(display, x++, OFFSET_Y, Z_SKIP, glyph(' ', COLOR_YELLOW, COLOR_BLACK));
 }
 
 

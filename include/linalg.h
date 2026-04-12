@@ -2,6 +2,8 @@
 #ifndef LINALG_H
 #define LINALG_H
 
+#include <stdbool.h>
+
 float fast_inv_sqrt(float v);
 
 
@@ -95,6 +97,36 @@ void vec3_print(Vec3 vector);
 #define VEC3_RIGHT 	((Vec3){ .x = 1, .y = 0, .z = 0, })
 #define VEC3_UP 	((Vec3){ .x = 0, .y = -1, .z = 0, })
 #define VEC3_DOWN 	((Vec3){ .x = 0, .y = 1, .z = 0, })
+
+
+// ////// Rect2i //////
+typedef struct {
+	int x;
+	int y;
+	int w;
+	int h;
+} Rect2i;
+
+#define RECT2I_FMT "Rect2i(x: %d, y: %d, w: %d, h: %d)"
+#define RECT2I_ARG(rect) (rect).x, (rect).y, (rect).w, (rect).h
+bool rect2i_overlaps(Rect2i a, Rect2i b);
+bool rect2i_contains(Rect2i rect, int x, int y);
+Vec2i rect2i_center(Rect2i rect);
+
+
+// ////// Rect2 //////
+typedef struct {
+	float x;
+	float y;
+	float w;
+	float h;
+} Rect2;
+
+#define RECT2_FMT "Rect2(x: %f, y: %f, w: %f, h: %f)"
+#define RECT2_ARG(rect) (rect).x, (rect).y, (rect).w, (rect).h
+bool rect2_overlaps(Rect2 a, Rect2 b);
+bool rect2_contains(Rect2 rect, float x, float y);
+Vec2 rect2_center(Rect2 rect);
 
 
 #endif // LINALG_H

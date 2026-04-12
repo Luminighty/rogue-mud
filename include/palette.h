@@ -11,6 +11,7 @@
 #define COLOR_DARK_GRAY 236
 #define COLOR_PINK 177
 #define COLOR_CYAN 51
+#define COLOR_TEAL 38
 
 #define COLOR_YELLOW 214
 #define COLOR_DARK_YELLOW 166

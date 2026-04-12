@@ -7,6 +7,7 @@
 #include "linalg.h"
 #include "map.h"
 #include "palette.h"
+#include "tile.h"
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,19 +19,22 @@ static const double GCD_MOVE = 0.1 * 1000;
 static void update_player_fov(Player *player, Vec2i position);
 
 
-void player_init(Player *player, Vec2i position) {
+void player_init(Player *player, Vec2i position, char *name) {
 	memset(player, 0, sizeof(Player));
+
+	strncpy(player->name, name, sizeof(player->name));
 
 	player->active = true;
 	player->actor = actor_create(
 		ACTOR_PLAYER,
+		.hp = 30,
 		.position = position,
 		.glyph = glyph('@', COLOR_YELLOW, COLOR_BLACK),
 		.z = 100,
 	);
 	player->vision.map = &game.map;
 
-	// vision_reveal_all(&player->vision);
+	vision_reveal_all(&player->vision);
 	update_player_fov(player, position);
 }
 
@@ -75,7 +79,9 @@ void player_tick(Player *player, double dt) {
 
 
 static bool is_opaque(int x, int y, void *_data) {
-	return game_is_solid(x, y);
+	(void)(_data); // unused
+	Tile tile = map_get(&game.map, x, y);
+	return tile_is_opaque(tile);
 }
 
 static void on_visible(int x, int y, void *data) {

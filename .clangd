@@ -1,0 +1,11 @@
+Index:
+  Background: Build
+
+CompileFlags:
+  Add: [-Iinclude]
+
+---
+If:
+  PathMatch: build/.*
+CompileFlags:
+  Remove: [-I.*]
