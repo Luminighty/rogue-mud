@@ -9,7 +9,6 @@
 #include "palette.h"
 #include "tile.h"
 #include <assert.h>
-#include <stdio.h>
 #include <string.h>
 
 
@@ -31,10 +30,11 @@ void player_init(Player *player, Vec2i position, char *name) {
 		.position = position,
 		.glyph = glyph('@', COLOR_YELLOW, COLOR_BLACK),
 		.z = 100,
+		.name = player->name,
 	);
 	player->vision.map = &game.map;
 
-	vision_reveal_all(&player->vision);
+	// vision_reveal_all(&player->vision);
 	update_player_fov(player, position);
 }
 

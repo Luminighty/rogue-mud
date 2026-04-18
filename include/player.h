@@ -2,7 +2,7 @@
 #define PLAYER_H
 
 
-#include "actor.h"
+#include "actor_id.h"
 #include "display.h"
 #include "linalg.h"
 #include "vision.h"

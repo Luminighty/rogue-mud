@@ -1,6 +1,8 @@
 #ifndef VISION_H
 #define VISION_H
 
+#include "darray.h"
+#include "linalg.h"
 #include "map.h"
 
 typedef enum {
@@ -12,6 +14,7 @@ typedef struct vision {
 	Map *map;
 	VisionFlag flags[MAP_SIZE];
 } Vision;
+
 
 
 static inline bool vision_is_visible(Vision *vision, int x, int y) {
@@ -60,6 +63,28 @@ static inline void vision_reveal_all(Vision *vision) {
 	for (int x = 0; x < vision->map->width; x++) {
 		vision_set_revealed(vision, x, y, true);
 	}}
+}
+
+
+typedef DynamicArray(Vec2i) VisibleTiles;
+
+typedef struct {
+	int range;
+	bool dirty;
+	VisibleTiles visible_tiles;
+} Viewshed;
+
+static inline Viewshed viewshed_create(int range) {
+	Viewshed vs = {0};
+	vs.range = range;
+	vs.dirty = true;
+	da_reserve(vs.visible_tiles, range * range);
+	return vs;
+}
+void viewshed_process(Viewshed *viewshed, Vec2i position);
+bool viewshed_contains(Viewshed *viewshed, Vec2i position);
+static inline void viewshed_dirty(Viewshed *viewshed) {
+	viewshed->dirty = true;
 }
 
 #endif // VISION_H

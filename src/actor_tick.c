@@ -1,6 +1,10 @@
 #include "actor.h"
 #include "game.h"
 #include "linalg.h"
+#include "player.h"
+#include "vision.h"
+#include "palette.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 
@@ -24,7 +28,15 @@ static void enemy_tick(Actor *actor, double dt) {
 	case 1: try_move(actor, VEC2I_LEFT); break;
 	case 2: try_move(actor, VEC2I_UP); break;
 	case 3: try_move(actor, VEC2I_DOWN); break;
-	default: gcd_set(&actor->gcd, 300); break;
+	default: gcd_set(&actor->gcd, 300); return;
+	}
+	viewshed_dirty(&actor->viewshed);
+
+	Actor *player = actor_get(game.players[0].actor);
+	if (viewshed_contains(&actor->viewshed, player->position)) {
+		actor->glyph.fg = COLOR_RED;
+	} else {
+		actor->glyph.fg = COLOR_YELLOW;
 	}
 }
 
@@ -35,5 +47,7 @@ void actor_tick(Actor *actor, double dt) {
 	case ACTOR_ENEMY: enemy_tick(actor, dt); break;
 	case ACTOR_ITEM: break;
 	}
+
+	viewshed_process(&actor->viewshed, actor->position);
 }
 

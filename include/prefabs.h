@@ -2,7 +2,7 @@
 #define PREFAB_H
 
 
-#include "actor.h"
+#include "actor_id.h"
 #include "linalg.h"
 
 

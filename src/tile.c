@@ -1,4 +1,5 @@
 #include "tile.h"
+#include "palette.h"
 
 const TileFlag tile_flags[TILE_SIZE] = {
 	[TILE_NONE] = TILE_FLAG_SOLID | TILE_FLAG_OPAQUE,

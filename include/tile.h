@@ -2,7 +2,6 @@
 #define TILE_H
 
 #include "glyph.h"
-#include "palette.h"
 
 typedef enum {
 	TILE_NONE,

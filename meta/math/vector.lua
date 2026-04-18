@@ -16,6 +16,26 @@ local function vector_typedef(vector)
 	io.write(string.format("} %s;\n\n", vector.name))
 end
 
+local function vector_constructor(vector)
+	if not IS_HEADER then
+		return
+	end
+
+	local args = {}
+	for i = 1, vector.dimension do
+		local field = component_names[i]
+		table.insert(args, "_" .. field)
+	end
+
+	io.write("#define ", vector.prefix, "(", table.concat(args, ", "), ") ")
+	local fields = {}
+	for i = 1, vector.dimension do
+		local field = component_names[i]
+		table.insert(fields, string.format(".%s = (_%s)", field, field))
+	end
+	io.write("((", vector.name, "){ ", table.concat(fields, ", "), " })\n")
+end
+
 local function vector_op(vector, method_name, op)
 	FunctionBegin(vector.name, vector.prefix .. "_" .. method_name, vector.name .. " a", vector.name .. " b")
 	if IS_HEADER then
@@ -144,6 +164,7 @@ function Vector(vector)
 
 	io.write("// ////// ", vector.name, " //////\n")
 	vector_typedef(vector)
+	vector_constructor(vector)
 	vector_op(vector, "add", "+")
 	vector_op(vector, "sub", "-")
 	vector_scale(vector)
