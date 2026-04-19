@@ -32,12 +32,17 @@ static void enemy_tick(Actor *actor, double dt) {
 	}
 	viewshed_dirty(&actor->viewshed);
 
-	Actor *player = actor_get(game.players[0].actor);
+	Actor *player = actor_get(game->players[0].actor);
 	if (viewshed_contains(&actor->viewshed, player->position)) {
 		actor->glyph.fg = COLOR_RED;
+		PlayerLog *log = &game->players[0].log;
+		player_log_begin(log);
+		player_log_push(log, actor->name);
+		player_log_push(log, " roars!");
 	} else {
 		actor->glyph.fg = COLOR_YELLOW;
 	}
+	
 }
 
 

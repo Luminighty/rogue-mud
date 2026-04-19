@@ -7,7 +7,7 @@
 
 static bool is_opaque(int x, int y, void *_data) {
 	(void)(_data); // unused
-	Tile tile = map_get(&game.map, x, y);
+	Tile tile = map_get(&game->map, x, y);
 	return tile_is_opaque(tile);
 }
 

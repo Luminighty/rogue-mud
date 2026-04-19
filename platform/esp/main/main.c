@@ -1,5 +1,6 @@
 #include "deltatime.h"
 #include "esp_err.h"
+#include "esp_heap_caps.h"
 #include "esp_log_level.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/projdefs.h"
@@ -15,6 +16,7 @@
 
 #include "wifi_setup.h"
 #include "tcp_server.h"
+#include <assert.h>
 #include <stdio.h>
 
 static const char *TAG = "ESPMAIN";
@@ -48,6 +50,12 @@ void app_main(void) {
 
 	// xTaskCreate(tcp_server_task, "tcp_server", 4096, (void*)AF_INET, 5, NULL);
 
+	game = heap_caps_malloc(sizeof(Game), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+	if (game == NULL) {
+		ESP_LOGI(TAG, "Failed to initialize game");
+		vTaskDelay(pdMS_TO_TICKS(10000));
+		return;
+	}
 	delta_time_init();
 	network_init();
 	game_init();

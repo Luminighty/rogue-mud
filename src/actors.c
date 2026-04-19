@@ -9,48 +9,48 @@
 
 
 void actors_init() {
-	game.actors.max_index = 1;
+	game->actors.max_index = 1;
 }
 
 
 ActorId actors_push() {
-	uint16_t idx = game.actors.first_free;
+	uint16_t idx = game->actors.first_free;
 	if (idx == 0) {
-		assert(game.actors.max_index < ACTOR_COUNT);
-		idx = game.actors.max_index++;
+		assert(game->actors.max_index < ACTOR_COUNT);
+		idx = game->actors.max_index++;
 	} else {
-		idx = game.actors.first_free;
-		game.actors.first_free = game.actors.next_free[idx];
-		game.actors.next_free[idx] = 0;
+		idx = game->actors.first_free;
+		game->actors.first_free = game->actors.next_free[idx];
+		game->actors.next_free[idx] = 0;
 	}
-	uint16_t gen = ++game.actors.generation[idx];
-	game.actors.alive[idx] = true;
-	memset(&game.actors.actors[idx], 0, sizeof(Actor));
+	uint16_t gen = ++game->actors.generation[idx];
+	game->actors.alive[idx] = true;
+	memset(&game->actors.actors[idx], 0, sizeof(Actor));
 	return (ActorId){.gen = gen, .index = idx};
 }
 
 
 static inline bool is_alive(ActorId id) {
-	return game.actors.alive[id.index] &&
-		game.actors.generation[id.index] == id.gen;
+	return game->actors.alive[id.index] &&
+		game->actors.generation[id.index] == id.gen;
 }
 
 
 void actors_remove(ActorId id) {
 	if (!is_alive(id))
 		return;
-	game.actors.alive[id.index] = false;
-	game.actors.next_free[id.index] = game.actors.first_free;
-	game.actors.first_free = id.index;
+	game->actors.alive[id.index] = false;
+	game->actors.next_free[id.index] = game->actors.first_free;
+	game->actors.first_free = id.index;
 }
 
 
 Actor *actor_get(ActorId id) {
 	if (!is_alive(id)) {
 		assert(0);
-		return &game.actors.actors[0];
+		return &game->actors.actors[0];
 	}
-	return &game.actors.actors[id.index];
+	return &game->actors.actors[id.index];
 }
 
 

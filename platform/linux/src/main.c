@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 
@@ -32,6 +33,8 @@ static inline void render_clients() {
 
 int main() {
 	signal(SIGINT, handle_signal);
+
+	game = malloc(sizeof(Game));
 
 	delta_time_init();
 	network_init();

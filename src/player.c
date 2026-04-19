@@ -9,6 +9,7 @@
 #include "palette.h"
 #include "tile.h"
 #include <assert.h>
+#include <stdio.h>
 #include <string.h>
 
 
@@ -32,10 +33,17 @@ void player_init(Player *player, Vec2i position, char *name) {
 		.z = 100,
 		.name = player->name,
 	);
-	player->vision.map = &game.map;
+	player->vision.map = &game->map;
 
 	// vision_reveal_all(&player->vision);
 	update_player_fov(player, position);
+
+	PlayerLog *logs = &player->log;
+	player_log_begin(logs);
+	player_log_push(logs, "Good luck ");
+	player_log_push(logs, name);
+	player_log_push(logs, "!");
+	printf("player log: %s\n", player->log.logs[player->log.first_index]);
 }
 
 
@@ -80,7 +88,7 @@ void player_tick(Player *player, double dt) {
 
 static bool is_opaque(int x, int y, void *_data) {
 	(void)(_data); // unused
-	Tile tile = map_get(&game.map, x, y);
+	Tile tile = map_get(&game->map, x, y);
 	return tile_is_opaque(tile);
 }
 
@@ -93,8 +101,37 @@ static void on_visible(int x, int y, void *data) {
 static void update_player_fov(Player *player, Vec2i position) {
 	vision_clear_visible(&player->vision);
 	fov_2d(
-		position.x, position.y, 5,
+		position.x, position.y, 8,
 		is_opaque, on_visible,
 		player
 	);
 }
+
+
+void player_log_begin(PlayerLog *logs) {
+	if (logs->first_index <= 0) {
+		logs->first_index = PLAYER_LOG_SIZE - 1;
+	} else {
+		logs->first_index--;
+	}
+	logs->entry_length[logs->first_index] = 0;
+}
+
+
+void player_log_push(PlayerLog *logs, const char *log) {
+	int log_idx = logs->first_index;
+	for (int offset = 0; log[offset] != '\0'; offset++) {
+		int index = logs->entry_length[log_idx];
+		if (index >= PLAYER_LOG_ENTRY_LEN) {
+			logs->logs[log_idx][PLAYER_LOG_ENTRY_LEN - 1] = '.';
+			logs->logs[log_idx][PLAYER_LOG_ENTRY_LEN - 2] = '.';
+			logs->logs[log_idx][PLAYER_LOG_ENTRY_LEN - 3] = '.';
+			return;
+		}
+		logs->logs[log_idx][index] = log[offset];
+		logs->entry_length[log_idx]++;
+	}
+	int last_index = logs->entry_length[log_idx];
+	logs->logs[log_idx][last_index] = '\0';
+}
+

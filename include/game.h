@@ -20,7 +20,7 @@ typedef struct {
 } Game;
 
 
-extern Game game;
+extern Game *game;
 
 void game_init();
 void game_destroy();
@@ -32,13 +32,13 @@ void game_exit();
 
 
 static inline bool game_is_running() {
-	return game.running;
+	return game->running;
 }
 static inline bool game_should_update() {
-	return game.running;
+	return game->running;
 }
 static inline void game_set_dirty() {
-	game.is_dirty = true;
+	game->is_dirty = true;
 }
 
 

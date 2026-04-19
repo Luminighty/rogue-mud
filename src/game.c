@@ -14,25 +14,32 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
+#include "esp_attr.h"
 
-Game game = {0};
+Game *game = NULL;
 
 void game_init() {
+	assert(game != NULL);
+	memset(game, 0, sizeof(Game));
+
 	random_init();
 	actors_init();
 
-	game.running = true;
-	map_generate(&game.map);
+	game->running = true;
+	map_generate(&game->map);
 
-	assert(game.map.room_c > 0);
-	Room *first_room = &game.map.rooms[0];
+	assert(game->map.room_c > 0);
+	Room *first_room = &game->map.rooms[0];
 	Vec2i spawn = rect2i_center(first_room->rect);
-	player_init(&game.players[0], spawn, "Luminight");
-	player_init(&game.players[1], spawn, "Alias_01");
+	player_init(&game->players[0], spawn, "Luminight");
+	player_init(&game->players[1], spawn, "Alias_01");
 
-	foreach_room(&game.map, i) {
-		Vec2i center = rect2i_center(game.map.rooms[i].rect);
+	foreach_room(&game->map, i) {
+		if (i == 0)
+			continue;
+		Vec2i center = rect2i_center(game->map.rooms[i].rect);
 		if (random_range(0, 5) < 3) {
 			goblin_create(center);
 		} else {
@@ -60,34 +67,46 @@ void game_destroy() {
 
 
 bool game_tick(double dt) {
-	game.is_dirty = false;
-	game.time += dt;
+	game->is_dirty = false;
+	game->time += dt;
 
 	for (int i = 0; i < PLAYER_COUNT; i++) {
-		player_tick(&game.players[i], dt);
+		player_tick(&game->players[i], dt);
 	}
-	actors_tick(&game.actors, dt);
+	actors_tick(&game->actors, dt);
 
-	return game.is_dirty;
+	return game->is_dirty;
 }
 
 
 void game_exit() {
-	game.running = false;
+	game->running = false;
 }
 
 
 void game_render(Display *display, int player_idx) {
-	Player *player = &game.players[player_idx];
+	Player *player = &game->players[player_idx];
 	Actor *actor = actor_get(player->actor);
 	display_clear(display);
-	map_render(display, &game.map, &player->vision);
-	actors_render(display, &game.actors, &player->vision);
+	map_render(display, &game->map, &player->vision);
+	actors_render(display, &game->actors, &player->vision);
 
 	static const int OFFSET_Y = MAP_HEIGHT;
 	static const int HEIGHT = DISPLAY_HEIGHT - MAP_HEIGHT;
 
 	display_box(display, 0, OFFSET_Y, 80, HEIGHT);
+
+	// PLAYER LOGS
+	for (int i = 0; i < PLAYER_LOG_SIZE; i++) {
+		int log = (player->log.first_index + i) % PLAYER_LOG_SIZE;
+		if (player->log.entry_length[log] == 0)
+			break;
+		display_string(
+			display,
+			1, OFFSET_Y + 1 + i, 0,
+			player->log.logs[log], COLOR_WHITE, COLOR_BLACK
+		);
+	}
 
 	// PLAYER NAME
 	int x = 4;
@@ -106,7 +125,7 @@ void game_render(Display *display, int player_idx) {
 
 
 void game_input(int player_idx, Key key) {
-	Player *player = &game.players[player_idx];
+	Player *player = &game->players[player_idx];
 	Actor *actor = actor_get(player->actor);
 	if (gcd_remaining(&actor->gcd) > 100.0)
 		return;
@@ -123,6 +142,6 @@ void game_input(int player_idx, Key key) {
 
 
 bool game_is_solid(int x, int y) {
-	return map_is_solid(&game.map, x, y);
+	return map_is_solid(&game->map, x, y);
 }
 

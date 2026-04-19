@@ -18,6 +18,7 @@ static void map_fill_rect(Map *map, Rect2i rect, Tile tile) {
 	}}
 }
 
+
 static void map_create_room(Map *map, Room *room) {
 	Rect2i rect = room->rect;
 	rect.x += 1;
@@ -27,12 +28,14 @@ static void map_create_room(Map *map, Room *room) {
 	map_fill_rect(map, rect, TILE_FLOOR);
 }
 
+
 static void add_horizontal_corridor(Map *map, int from_x, int to_x, int y) {
 	int min = from_x < to_x ? from_x : to_x;
 	int max = from_x > to_x ? from_x : to_x;
 	for (int x = min; x <= max; x++)
 		map_set(map, x, y, TILE_FLOOR);
 }
+
 
 static void add_vertical_corridor(Map *map, int from_y, int to_y, int x) {
 	int min = from_y < to_y ? from_y : to_y;
@@ -76,6 +79,7 @@ void try_create_room(Map *map) {
 
 	map_create_room(map, new_room);
 }
+
 
 void map_generate(Map *map) {
 	map->width = MAP_WIDTH;
