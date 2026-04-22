@@ -17,11 +17,12 @@
 	if ((vec).count >= (vec).capacity) {\
 		if ((vec).capacity == 0) (vec).capacity = 256;\
 		else (vec).capacity *= 2;\
-		vec.items = realloc((vec).items, (vec).capacity * sizeof(*(vec).items));\
+		(vec).items = realloc((vec).items, (vec).capacity * sizeof(*(vec).items));\
 	}\
-	(vec).items[(vec).count++] = value;\
+	(vec).items[(vec).count++] = (value);\
 	} while (0)
 
+#define da_last(vec) (&(vec).items[(vec).count - 1])
 #define da_pop(vec) (vec).items[--(vec).count]
 #define da_clear(vec) (vec).count = 0
 #define foreach_da(vec, i) for (size_t i = 0; i < (vec).count; i++)

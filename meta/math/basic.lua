@@ -20,6 +20,11 @@ local function helpers()
 	end
 	io.write("#define min(a, b) (a < b) ? a : b\n")
 	io.write("#define max(a, b) (a > b) ? a : b\n\n")
+	io.write("#define fmaxf(a, b) (a > b) ? a : b\n\n")
+	io.write("#define fabs(a) ((a) > 0.0f) ? (a) : -(a)\n\n")
+	io.write("#define fabsf(a) ((a) > 0.0f) ? (a) : -(a)\n\n")
+	io.write("#define EPSILON 0.000001f\n")
+	io.write("\n")
 end
 
 function Basic()

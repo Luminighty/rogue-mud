@@ -11,7 +11,7 @@ ActorId goblin_create(Vec2i position) {
 		.glyph = glyph('g', COLOR_RED, COLOR_BLACK),
 		.z = 8,
 		.name = "Goblin",
-		.viewshed = viewshed_create(4),
+		.viewshed = viewshed_create(6),
 	);
 }
 
@@ -23,7 +23,7 @@ ActorId orc_create(Vec2i position) {
 		.glyph = glyph('o', COLOR_RED, COLOR_BLACK),
 		.z = 8,
 		.name = "Orc",
-		.viewshed = viewshed_create(6),
+		.viewshed = viewshed_create(8),
 	);
 }
 

@@ -16,8 +16,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "esp_attr.h"
-
 Game *game = NULL;
 
 void game_init() {

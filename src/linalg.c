@@ -5,6 +5,14 @@
 #define min(a, b) (a < b) ? a : b
 #define max(a, b) (a > b) ? a : b
 
+#define fmaxf(a, b) (a > b) ? a : b
+
+#define fabs(a) ((a) > 0.0f) ? (a) : -(a)
+
+#define fabsf(a) ((a) > 0.0f) ? (a) : -(a)
+
+#define EPSILON 0.000001f
+
 inline float fast_inv_sqrt(float v) {
 	float vhalf = 0.5f * v;
 	int i = *(int*)&v;
@@ -16,6 +24,10 @@ inline float fast_inv_sqrt(float v) {
 
 
 // ////// Vec2i //////
+inline bool vec2i_eq(Vec2i a, Vec2i b) {
+	return (a.x == b.x) &&
+		(a.y == b.y);
+}
 inline Vec2i vec2i_add(Vec2i a, Vec2i b) {
 	return ((Vec2i){
 		.x = a.x + b.x,
@@ -65,6 +77,11 @@ inline void vec2i_print(Vec2i vector) {
 
 
 // ////// Vec3i //////
+inline bool vec3i_eq(Vec3i a, Vec3i b) {
+	return (a.x == b.x) &&
+		(a.y == b.y) &&
+		(a.z == b.z);
+}
 inline Vec3i vec3i_add(Vec3i a, Vec3i b) {
 	return ((Vec3i){
 		.x = a.x + b.x,
@@ -120,6 +137,10 @@ inline void vec3i_print(Vec3i vector) {
 
 
 // ////// Vec2 //////
+inline bool vec2_eq(Vec2 a, Vec2 b) {
+	return (fabsf(a.x - b.x) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.x), fabsf(b.x))))) &&
+		(fabsf(a.y - b.y) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.y), fabsf(b.y)))));
+}
 inline Vec2 vec2_add(Vec2 a, Vec2 b) {
 	return ((Vec2){
 		.x = a.x + b.x,
@@ -169,6 +190,11 @@ inline void vec2_print(Vec2 vector) {
 
 
 // ////// Vec3 //////
+inline bool vec3_eq(Vec3 a, Vec3 b) {
+	return (fabsf(a.x - b.x) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.x), fabsf(b.x))))) &&
+		(fabsf(a.y - b.y) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.y), fabsf(b.y))))) &&
+		(fabsf(a.z - b.z) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.z), fabsf(b.z)))));
+}
 inline Vec3 vec3_add(Vec3 a, Vec3 b) {
 	return ((Vec3){
 		.x = a.x + b.x,

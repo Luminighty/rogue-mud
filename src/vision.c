@@ -26,7 +26,7 @@ void viewshed_process(Viewshed *viewshed, Vec2i position) {
 	viewshed->dirty = false;
 	da_clear(viewshed->visible_tiles);
 	fov_2d(
-		position.x, position.y, 5,
+		position.x, position.y, viewshed->range,
 		is_opaque, on_visible,
 		viewshed
 	);

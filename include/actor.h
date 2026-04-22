@@ -6,6 +6,7 @@
 #include "gcd.h"
 #include "glyph.h"
 #include "linalg.h"
+#include "pathfind.h"
 #include "vision.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -28,6 +29,7 @@ typedef struct actor {
 	char *name;
 
 	Viewshed viewshed;
+	Path path;
 } Actor;
 
 

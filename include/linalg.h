@@ -14,6 +14,7 @@ typedef union {
 } Vec2i;
 
 #define vec2i(_x, _y) ((Vec2i){ .x = (_x), .y = (_y) })
+bool vec2i_eq(Vec2i a, Vec2i b);
 Vec2i vec2i_add(Vec2i a, Vec2i b);
 Vec2i vec2i_sub(Vec2i a, Vec2i b);
 Vec2i vec2i_scale(Vec2i a, int scale);
@@ -38,6 +39,7 @@ typedef union {
 } Vec3i;
 
 #define vec3i(_x, _y, _z) ((Vec3i){ .x = (_x), .y = (_y), .z = (_z) })
+bool vec3i_eq(Vec3i a, Vec3i b);
 Vec3i vec3i_add(Vec3i a, Vec3i b);
 Vec3i vec3i_sub(Vec3i a, Vec3i b);
 Vec3i vec3i_scale(Vec3i a, int scale);
@@ -62,6 +64,7 @@ typedef union {
 } Vec2;
 
 #define vec2(_x, _y) ((Vec2){ .x = (_x), .y = (_y) })
+bool vec2_eq(Vec2 a, Vec2 b);
 Vec2 vec2_add(Vec2 a, Vec2 b);
 Vec2 vec2_sub(Vec2 a, Vec2 b);
 Vec2 vec2_scale(Vec2 a, float scale);
@@ -86,6 +89,7 @@ typedef union {
 } Vec3;
 
 #define vec3(_x, _y, _z) ((Vec3){ .x = (_x), .y = (_y), .z = (_z) })
+bool vec3_eq(Vec3 a, Vec3 b);
 Vec3 vec3_add(Vec3 a, Vec3 b);
 Vec3 vec3_sub(Vec3 a, Vec3 b);
 Vec3 vec3_scale(Vec3 a, float scale);

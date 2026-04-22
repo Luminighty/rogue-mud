@@ -36,6 +36,30 @@ local function vector_constructor(vector)
 	io.write("((", vector.name, "){ ", table.concat(fields, ", "), " })\n")
 end
 
+local function vector_eq(vector)
+	FunctionBegin("bool", vector.prefix .. "_eq", vector.name .. " a", vector.name .. " b")
+	if IS_HEADER then
+		return
+	end
+
+	local fields = {}
+	for i = 1, vector.dimension do
+		local f = component_names[i]
+		local eq = ({
+			int = string.format("(a.%s == b.%s)", f, f),
+			float = string.format(
+				"(fabs(a.%s - b.%s) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.%s), fabsf(b.%s)))))",
+				f,
+				f,
+				f,
+				f
+			),
+		})[vector.component]
+		table.insert(fields, eq)
+	end
+	io.write(string.format("\treturn %s;\n}\n", table.concat(fields, " &&\n\t\t")))
+end
+
 local function vector_op(vector, method_name, op)
 	FunctionBegin(vector.name, vector.prefix .. "_" .. method_name, vector.name .. " a", vector.name .. " b")
 	if IS_HEADER then
@@ -165,6 +189,7 @@ function Vector(vector)
 	io.write("// ////// ", vector.name, " //////\n")
 	vector_typedef(vector)
 	vector_constructor(vector)
+	vector_eq(vector)
 	vector_op(vector, "add", "+")
 	vector_op(vector, "sub", "-")
 	vector_scale(vector)

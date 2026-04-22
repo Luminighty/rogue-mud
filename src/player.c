@@ -101,7 +101,7 @@ static void on_visible(int x, int y, void *data) {
 static void update_player_fov(Player *player, Vec2i position) {
 	vision_clear_visible(&player->vision);
 	fov_2d(
-		position.x, position.y, 8,
+		position.x, position.y, 12,
 		is_opaque, on_visible,
 		player
 	);
