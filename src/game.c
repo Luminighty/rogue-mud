@@ -31,8 +31,8 @@ void game_init() {
 	assert(game->map.room_c > 0);
 	Room *first_room = &game->map.rooms[0];
 	Vec2i spawn = rect2i_center(first_room->rect);
-	player_init(&game->players[0], spawn, "Luminight");
-	player_init(&game->players[1], spawn, "Alias_01");
+	player_init(&game->players[0], spawn, "Luminight", COLOR_YELLOW);
+	player_init(&game->players[1], vec2i_add(spawn, VEC2I_RIGHT), "Alias_01", COLOR_TEAL);
 
 	foreach_room(&game->map, i) {
 		if (i == 0)
@@ -122,18 +122,25 @@ void game_render(Display *display, int player_idx) {
 }
 
 
-void game_input(int player_idx, Key key) {
+void game_input(int player_idx, KeyStroke key_stroke) {
 	Player *player = &game->players[player_idx];
 	Actor *actor = actor_get(player->actor);
 	if (gcd_remaining(&actor->gcd) > 100.0)
 		return;
-	switch (key) {
-	case KEY_UP:	player_set_action(player, ACTION_MOVE_UP); break;
-	case KEY_DOWN:	player_set_action(player, ACTION_MOVE_DOWN); break;
-	case KEY_LEFT:	player_set_action(player, ACTION_MOVE_LEFT); break;
-	case KEY_RIGHT:	player_set_action(player, ACTION_MOVE_RIGHT); break;
-	case KEY_Q:	client_close(client_get(player_idx)); break;
-	default: break;
+	Vec2i dir = {0};
+	PlayerActionKind kind = ACTION_NONE;
+
+	#define set_move(base, when_shift)\
+		kind = ACTION_MOVE; base; if (key_stroke.shift) when_shift
+	switch (key_stroke.key) {
+	case KEY_UP:	set_move(dir.y = -1, dir.x = -1); break;
+	case KEY_DOWN:	set_move(dir.y =  1, dir.x =  1); break;
+	case KEY_LEFT:	set_move(dir.x = -1, dir.y =  1); break;
+	case KEY_RIGHT:	set_move(dir.x =  1, dir.y = -1); break;
+	case KEY_Q:
+		client_close(client_get(player_idx));
+		break;
+	default: printf("Unknown key '%d' '%c'\n", key_stroke.key, key_stroke.key); break;
 	}
 
 }

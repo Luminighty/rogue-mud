@@ -13,6 +13,7 @@
 
 #define EPSILON 0.000001f
 
+
 inline float fast_inv_sqrt(float v) {
 	float vhalf = 0.5f * v;
 	int i = *(int*)&v;

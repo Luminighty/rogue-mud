@@ -70,26 +70,26 @@ static inline void accept_clients() {
 }
 
 
-static void handle_client_escaped_char(Client *client, char c) {
+static int handle_client_escaped_char(Client *client, char c) {
 	switch (c) {
-	case 'A':
-		game_input(client->player_index, KEY_UP);
-		break;
-	case 'B':
-		game_input(client->player_index, KEY_DOWN);
-		break;
-	case 'C':
-		game_input(client->player_index, KEY_RIGHT);
-		break;
-	case 'D':
-		game_input(client->player_index, KEY_LEFT);
-		break;
+	case 'A': return KEY_UP;
+	case 'B': return KEY_DOWN;
+	case 'C': return KEY_RIGHT;
+	case 'D': return KEY_LEFT;
 	default: // UNKNOWN
-		break;
+		return 0;
 	}
 }
-static void handle_client_char(Client *client, char c) {
-	game_input(client->player_index, c);
+static void handle_client_char(Client *client, char c, char modifier) {
+	KeyStroke key = {.key = c};
+	if (modifier != 0) {
+		modifier -= '0' - 1;
+		key.shift = modifier & 0b001;
+		key.alt   = modifier & 0b010;
+		key.ctrl  = modifier & 0b100;
+	}
+	
+	game_input(client->player_index, key);
 }
 
 // NOTE: Will have to create some lexer logic for this probably once I want to use more telnet features
@@ -139,6 +139,7 @@ static int handle_telnet_command(Client *client, int i) {
 static void handle_client_message(Client *client) {
 	static const char ESCAPE_CHAR = 27;
 	static const char ESCAPE_CHAR_NEXT = '[';
+	static const char ESCAPE_MODIFIER = ';';
 
 	int i = 0;
 	while(i < client->in_len) {
@@ -151,6 +152,16 @@ static void handle_client_message(Client *client) {
 			continue;
 		}
 			
+		// NOTE: Have to move this inside ESCAPE_CHAR and figure out things
+		// char modifier = 0;
+		// if (c == ESCAPE_MODIFIER) {
+		// 	if (i + 3 >= client->in_len)
+		// 		break;
+		// 	c = client->in_buffer[i + 1];
+		// 	modifier = client->in_buffer[i + 2];
+		// 	i += 3;
+		// }
+
 		if (c == ESCAPE_CHAR) {
 			if (i + 2 >= client->in_len)
 				break;
@@ -158,13 +169,13 @@ static void handle_client_message(Client *client) {
 				i += 1;
 				continue;
 			}
-			char c = client->in_buffer[i + 2];
-			handle_client_escaped_char(client, c);
+			char to_escape = client->in_buffer[i + 2];
+			c = handle_client_escaped_char(client, to_escape);
 			i += 3;
 			continue;
 		}
 
-		handle_client_char(client, c);
+		handle_client_char(client, c, modifier);
 		i++;
 	}
 	if (i == 0)

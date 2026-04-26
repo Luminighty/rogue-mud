@@ -17,6 +17,7 @@ typedef struct {
 
 typedef struct {
 	Tile tiles[MAP_SIZE];
+	bool blocked[MAP_SIZE];
 	uint16_t width;
 	uint16_t height;
 	Room rooms[ROOM_MAX];

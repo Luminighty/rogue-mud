@@ -121,4 +121,12 @@ typedef enum {
 } Key;
 
 
+typedef struct {
+    Key key;
+    bool shift;
+    bool alt;
+    bool ctrl;
+} KeyStroke;
+
+
 #endif // KEYBOARD_H

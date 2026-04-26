@@ -109,6 +109,6 @@ bool map_is_solid(Map *map, int x, int y) {
 	if (!map_contains(map, x, y))
 		return true;
 
-	return tile_is_solid(map_get(map, x, y));
+	return tile_is_solid(map_get(map, x, y)) || map->blocked[map_idx(map, x, y)];
 }
 

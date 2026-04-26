@@ -7,14 +7,18 @@
 #include "linalg.h"
 #include "vision.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 
 typedef enum {
 	ACTION_NONE,
-	ACTION_MOVE_UP,
-	ACTION_MOVE_DOWN,
-	ACTION_MOVE_LEFT,
-	ACTION_MOVE_RIGHT,
+	ACTION_MOVE,
+} PlayerActionKind;
+
+
+typedef struct {
+	PlayerActionKind kind;
+	Vec2i dir;
 } PlayerAction;
 
 #define PLAYER_NAME_SIZE 16
@@ -39,10 +43,10 @@ typedef struct {
 } Player;
 
 
-void player_init(Player *player, Vec2i position, char *name);
+void player_init(Player *player, Vec2i position, char *name, uint8_t color);
 void player_tick(Player *player, double dt);
 void player_render(Display *display, Player *player, bool is_current_player);
-void player_set_action(Player *player, PlayerAction action);
+void player_action_move(Player *player, Vec2i dir);
 
 void player_log_begin(PlayerLog *logs);
 void player_log_push(PlayerLog *logs, const char *log);

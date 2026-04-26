@@ -26,7 +26,7 @@ void game_init();
 void game_destroy();
 bool game_tick(double dt);
 void game_render(Display *display, int player);
-void game_input(int player, Key key);
+void game_input(int player_idx, KeyStroke key_stroke);
 bool game_is_solid(int x, int y);
 void game_exit();
 

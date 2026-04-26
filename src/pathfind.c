@@ -28,8 +28,9 @@ static inline PathNode *pathnodes_find(PathNodes *nodes, Vec2i pos) {
 	return NULL;
 }
 
+#define max(a, b) (a > b) ? a : b
 static inline PathCost calculate_h_cost(Vec2i current, Vec2i target, PathCost current_cost) {
-	return abs(current.x - target.x) + abs(current.y - target.y) + current_cost;
+	return max(abs(current.x - target.x), abs(current.y - target.y)) + current_cost;
 }
 
 
