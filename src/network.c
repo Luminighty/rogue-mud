@@ -1,5 +1,6 @@
 #include "network.h"
 #include "client.h"
+#include "client_telnet.h"
 #include "config.h"
 #include "cp437.h"
 #include "game.h"
@@ -137,61 +138,7 @@ static int handle_telnet_command(Client *client, int i) {
 }
 
 static void handle_client_message(Client *client) {
-	static const char ESCAPE_CHAR = 27;
-	static const char ESCAPE_CHAR_NEXT = '[';
-	static const char ESCAPE_MODIFIER = ';';
-
-	int i = 0;
-	while(i < client->in_len) {
-		uint8_t c = client->in_buffer[i];
-		if (c == TELNET_IAC) {
-			int n = handle_telnet_command(client, i);
-			if (n < 0)
-				break;
-			i += n;
-			continue;
-		}
-			
-		// NOTE: Have to move this inside ESCAPE_CHAR and figure out things
-		// char modifier = 0;
-		// if (c == ESCAPE_MODIFIER) {
-		// 	if (i + 3 >= client->in_len)
-		// 		break;
-		// 	c = client->in_buffer[i + 1];
-		// 	modifier = client->in_buffer[i + 2];
-		// 	i += 3;
-		// }
-
-		if (c == ESCAPE_CHAR) {
-			if (i + 2 >= client->in_len)
-				break;
-			if (client->in_buffer[i+1] != ESCAPE_CHAR_NEXT) {
-				i += 1;
-				continue;
-			}
-			char to_escape = client->in_buffer[i + 2];
-			c = handle_client_escaped_char(client, to_escape);
-			i += 3;
-			continue;
-		}
-
-		handle_client_char(client, c, modifier);
-		i++;
-	}
-	if (i == 0)
-		return;
-	if (i < client->in_len) {
-		// NOTE: We partially read the buffer, shift it all to the left
-		memmove(
-			client->in_buffer,
-			client->in_buffer + i,
-			client->in_len - i
-		);
-		client->in_len -= i;
-	} else {
-		// NOTE: We read the whole input buffer
-		client->in_len = 0;
-	}
+	client_telnet_receive(client);
 }
 
 
@@ -214,6 +161,8 @@ static void client_recv(Client *client) {
 		return;
 	}
 	if (n > 0) {
+		// for (int i = 0; i < n; i++)
+		// 	printf("Received '%d'\n", client->in_buffer[client->in_len + i]);
 		client->in_len += n;
 		handle_client_message(client);
 	}

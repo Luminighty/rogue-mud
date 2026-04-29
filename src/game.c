@@ -4,6 +4,7 @@
 #include "display.h"
 #include "gcd.h"
 #include "actor.h"
+#include "key.h"
 #include "linalg.h"
 #include "map.h"
 #include "network.h"
@@ -127,8 +128,11 @@ void game_input(int player_idx, KeyStroke key_stroke) {
 	Actor *actor = actor_get(player->actor);
 	if (gcd_remaining(&actor->gcd) > 100.0)
 		return;
+
 	Vec2i dir = {0};
 	PlayerActionKind kind = ACTION_NONE;
+
+	// printf(KEYSTROKE_FMT"\n", KEYSTROKE_ARG(key_stroke));
 
 	#define set_move(base, when_shift)\
 		kind = ACTION_MOVE; base; if (key_stroke.shift) when_shift
@@ -140,9 +144,14 @@ void game_input(int player_idx, KeyStroke key_stroke) {
 	case KEY_Q:
 		client_close(client_get(player_idx));
 		break;
-	default: printf("Unknown key '%d' '%c'\n", key_stroke.key, key_stroke.key); break;
+	default: 
+		printf("Unknown input: "KEYSTROKE_FMT"\n", KEYSTROKE_ARG(key_stroke));
+		break;
 	}
-
+	if (kind == ACTION_NONE)
+		return;
+	player->action.kind = kind;
+	player->action.dir = dir;
 }
 
 

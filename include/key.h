@@ -3,6 +3,7 @@
 
 
 // Taken from https://github.com/raysan5/raylib/blob/master/src/raylib.h#L587C1-L702C15
+#include <stdbool.h>
 typedef enum {
     KEY_NULL            = 0,        // Key: NULL, used for no key pressed
     // Alphanumeric keys
@@ -113,11 +114,6 @@ typedef enum {
     KEY_KP_ADD          = 334,      // Key: Keypad +
     KEY_KP_ENTER        = 335,      // Key: Keypad Enter
     KEY_KP_EQUAL        = 336,      // Key: Keypad =
-    // Android key buttons
-    KEY_BACK            = 4,        // Key: Android back button
-    KEY_MENU            = 5,        // Key: Android menu button
-    KEY_VOLUME_UP       = 24,       // Key: Android volume up button
-    KEY_VOLUME_DOWN     = 25        // Key: Android volume down button
 } Key;
 
 
@@ -128,5 +124,7 @@ typedef struct {
     bool ctrl;
 } KeyStroke;
 
+#define KEYSTROKE_FMT "KeyStroke(%d, shift: %d, alt: %d, ctrl: %d)"
+#define KEYSTROKE_ARG(key_stroke) (key_stroke).key, (key_stroke).shift, (key_stroke).alt, (key_stroke).ctrl
 
 #endif // KEYBOARD_H
