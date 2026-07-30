@@ -1,15 +1,32 @@
 require("meta.math.utils")
 
+local function assert_offset(rect, field, other_field)
+	local fmt = ('static_assert(offsetof(Rect2i, %s) == offsetof(Rect2i, %s), "Offset mismatch for %s and %s");\n'):format(
+		field,
+		other_field,
+		field,
+		other_field
+	)
+	io.write(fmt)
+end
+
 local function rect_typedef(rect)
 	if not IS_HEADER then
+		assert_offset(rect, "x", "position.x")
+		assert_offset(rect, "y", "position.y")
+		assert_offset(rect, "w", "size.x")
+		assert_offset(rect, "h", "size.y")
 		return
 	end
-	io.write("typedef struct {\n")
-	io.write(string.format("\t%s x;\n", rect.component))
-	io.write(string.format("\t%s y;\n", rect.component))
-	io.write(string.format("\t%s w;\n", rect.component))
-	io.write(string.format("\t%s h;\n", rect.component))
-	io.write(string.format("} %s;\n\n", rect.name))
+	local vec_map = { int = "Vec2i", float = "Vec2" }
+	local vec = vec_map[rect.component]
+	io.write("typedef union {\n")
+	io.write(("\tstruct { %s pos; %s size; };\n"):format(vec, vec))
+	io.write("\tstruct {\n")
+	io.write(("\t\t%s x; %s y;\n"):format(rect.component, rect.component))
+	io.write(("\t\t%s w; %s h;\n"):format(rect.component, rect.component))
+	io.write("\t};\n")
+	io.write(("} %s;\n\n"):format(rect.name))
 end
 
 local function rect_fmt(rect)

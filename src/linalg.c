@@ -13,7 +13,6 @@
 
 #define EPSILON 0.000001f
 
-
 inline float fast_inv_sqrt(float v) {
 	float vhalf = 0.5f * v;
 	int i = *(int*)&v;
@@ -139,8 +138,8 @@ inline void vec3i_print(Vec3i vector) {
 
 // ////// Vec2 //////
 inline bool vec2_eq(Vec2 a, Vec2 b) {
-	return (fabsf(a.x - b.x) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.x), fabsf(b.x))))) &&
-		(fabsf(a.y - b.y) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.y), fabsf(b.y)))));
+	return (fabs(a.x - b.x) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.x), fabsf(b.x))))) &&
+		(fabs(a.y - b.y) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.y), fabsf(b.y)))));
 }
 inline Vec2 vec2_add(Vec2 a, Vec2 b) {
 	return ((Vec2){
@@ -192,9 +191,9 @@ inline void vec2_print(Vec2 vector) {
 
 // ////// Vec3 //////
 inline bool vec3_eq(Vec3 a, Vec3 b) {
-	return (fabsf(a.x - b.x) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.x), fabsf(b.x))))) &&
-		(fabsf(a.y - b.y) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.y), fabsf(b.y))))) &&
-		(fabsf(a.z - b.z) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.z), fabsf(b.z)))));
+	return (fabs(a.x - b.x) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.x), fabsf(b.x))))) &&
+		(fabs(a.y - b.y) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.y), fabsf(b.y))))) &&
+		(fabs(a.z - b.z) <= (EPSILON*fmaxf(1.0f, fmaxf(fabsf(a.z), fabsf(b.z)))));
 }
 inline Vec3 vec3_add(Vec3 a, Vec3 b) {
 	return ((Vec3){
@@ -251,6 +250,10 @@ inline void vec3_print(Vec3 vector) {
 
 
 // ////// Rect2i //////
+static_assert(offsetof(Rect2i, x) == offsetof(Rect2i, position.x), "Offset mismatch for x and position.x");
+static_assert(offsetof(Rect2i, y) == offsetof(Rect2i, position.y), "Offset mismatch for y and position.y");
+static_assert(offsetof(Rect2i, w) == offsetof(Rect2i, size.x), "Offset mismatch for w and size.x");
+static_assert(offsetof(Rect2i, h) == offsetof(Rect2i, size.y), "Offset mismatch for h and size.y");
 inline bool rect2i_overlaps(Rect2i a, Rect2i b) {
 	return (a.x < b.x + b.w) &&
 		(a.x + a.w > b.x) &&
@@ -269,6 +272,10 @@ inline Vec2i rect2i_center(Rect2i rect) {
 
 
 // ////// Rect2 //////
+static_assert(offsetof(Rect2i, x) == offsetof(Rect2i, position.x), "Offset mismatch for x and position.x");
+static_assert(offsetof(Rect2i, y) == offsetof(Rect2i, position.y), "Offset mismatch for y and position.y");
+static_assert(offsetof(Rect2i, w) == offsetof(Rect2i, size.x), "Offset mismatch for w and size.x");
+static_assert(offsetof(Rect2i, h) == offsetof(Rect2i, size.y), "Offset mismatch for h and size.y");
 inline bool rect2_overlaps(Rect2 a, Rect2 b) {
 	return (a.x < b.x + b.w) &&
 		(a.x + a.w > b.x) &&

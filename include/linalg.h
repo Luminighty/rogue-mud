@@ -13,6 +13,8 @@ typedef union {
 	int v[2];
 } Vec2i;
 
+#define VEC2I_FMT "Vec2i(%d, %d)"
+#define VEC2I_ARG(rect) (vec).x, (vec).y
 #define vec2i(_x, _y) ((Vec2i){ .x = (_x), .y = (_y) })
 bool vec2i_eq(Vec2i a, Vec2i b);
 Vec2i vec2i_add(Vec2i a, Vec2i b);
@@ -38,6 +40,8 @@ typedef union {
 	int v[3];
 } Vec3i;
 
+#define VEC3I_FMT "Vec3i(%d, %d, %d)"
+#define VEC3I_ARG(rect) (vec).x, (vec).y, (vec).z
 #define vec3i(_x, _y, _z) ((Vec3i){ .x = (_x), .y = (_y), .z = (_z) })
 bool vec3i_eq(Vec3i a, Vec3i b);
 Vec3i vec3i_add(Vec3i a, Vec3i b);
@@ -63,6 +67,8 @@ typedef union {
 	float v[2];
 } Vec2;
 
+#define VEC2_FMT "Vec2(%f, %f)"
+#define VEC2_ARG(rect) (vec).x, (vec).y
 #define vec2(_x, _y) ((Vec2){ .x = (_x), .y = (_y) })
 bool vec2_eq(Vec2 a, Vec2 b);
 Vec2 vec2_add(Vec2 a, Vec2 b);
@@ -88,6 +94,8 @@ typedef union {
 	float v[3];
 } Vec3;
 
+#define VEC3_FMT "Vec3(%f, %f, %f)"
+#define VEC3_ARG(rect) (vec).x, (vec).y, (vec).z
 #define vec3(_x, _y, _z) ((Vec3){ .x = (_x), .y = (_y), .z = (_z) })
 bool vec3_eq(Vec3 a, Vec3 b);
 Vec3 vec3_add(Vec3 a, Vec3 b);
@@ -108,11 +116,12 @@ void vec3_print(Vec3 vector);
 
 
 // ////// Rect2i //////
-typedef struct {
-	int x;
-	int y;
-	int w;
-	int h;
+typedef union {
+	struct { Vec2i pos; Vec2i size; };
+	struct {
+		int x; int y;
+		int w; int h;
+	};
 } Rect2i;
 
 #define RECT2I_FMT "Rect2i(x: %d, y: %d, w: %d, h: %d)"
@@ -123,11 +132,12 @@ Vec2i rect2i_center(Rect2i rect);
 
 
 // ////// Rect2 //////
-typedef struct {
-	float x;
-	float y;
-	float w;
-	float h;
+typedef union {
+	struct { Vec2 pos; Vec2 size; };
+	struct {
+		float x; float y;
+		float w; float h;
+	};
 } Rect2;
 
 #define RECT2_FMT "Rect2(x: %f, y: %f, w: %f, h: %f)"
